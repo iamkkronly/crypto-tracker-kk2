@@ -4,13 +4,211 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#crypto-container {
+    width: 80%;
+    max-width: 1000px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-x: auto; /* Allows table to be scrollable on small screens */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #crypto-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    th, td {
+        padding: 10px 8px;
+        font-size: 0.9em;
+    }
+
+    img {
+        width: 16px !important;
+        height: 16px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    th, td {
+        padding: 8px 5px;
+        font-size: 0.8em;
+    }
+    /* Reduce padding further or hide less critical columns if necessary */
+}
+    </style>
 </head>
 <body>
     <h1>Crypto Tracker</h1>
     <div id="crypto-container">
         <!-- Crypto data will be loaded here by JavaScript -->
     </div>
-    <script src="script.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cryptoContainer = document.getElementById('crypto-container');
+    const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false';
+
+    async function fetchCryptoData() {
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+            }
+            const coins = await response.json();
+            displayCryptoData(coins);
+        } catch (error) {
+            console.error("Error fetching crypto data:", error);
+            cryptoContainer.innerHTML = '<p>Error loading data. Please try again later.</p>';
+        }
+    }
+
+    function displayCryptoData(coins) {
+        cryptoContainer.innerHTML = ''; // Clear previous data or loading message
+
+        if (!coins || coins.length === 0) {
+            cryptoContainer.innerHTML = '<p>No cryptocurrency data available.</p>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        // Create table header
+        const headerRow = document.createElement('tr');
+        const headers = ['Rank', 'Name', 'Symbol', 'Price (USD)', 'Market Cap (USD)', '24h Change (%)'];
+        headers.forEach(headerText => {
+            const th = document.createElement('th');
+            th.textContent = headerText;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create table body
+        coins.forEach((coin, index) => {
+            const row = document.createElement('tr');
+
+            const rankCell = document.createElement('td');
+            rankCell.textContent = coin.market_cap_rank || (index + 1); // Use market_cap_rank if available
+
+            const nameCell = document.createElement('td');
+            const nameLink = document.createElement('a');
+            nameLink.href = `https://www.coingecko.com/en/coins/${coin.id}`;
+            nameLink.textContent = coin.name;
+            nameLink.target = '_blank'; // Open in new tab
+            nameCell.appendChild(nameLink);
+
+            // Display coin image
+            const image = document.createElement('img');
+            image.src = coin.image;
+            image.alt = coin.name;
+            image.style.width = '20px';
+            image.style.height = '20px';
+            image.style.marginRight = '8px';
+            nameCell.prepend(image);
+
+
+            const symbolCell = document.createElement('td');
+            symbolCell.textContent = coin.symbol.toUpperCase();
+
+            const priceCell = document.createElement('td');
+            priceCell.textContent = coin.current_price ? `$${coin.current_price.toLocaleString()}` : 'N/A';
+
+            const marketCapCell = document.createElement('td');
+            marketCapCell.textContent = coin.market_cap ? `$${coin.market_cap.toLocaleString()}` : 'N/A';
+
+            const priceChange24hCell = document.createElement('td');
+            const change = coin.price_change_percentage_24h;
+            if (change != null) {
+                priceChange24hCell.textContent = `${change.toFixed(2)}%`;
+                priceChange24hCell.style.color = change >= 0 ? 'green' : 'red';
+            } else {
+                priceChange24hCell.textContent = 'N/A';
+            }
+
+            row.appendChild(rankCell);
+            row.appendChild(nameCell);
+            row.appendChild(symbolCell);
+            row.appendChild(priceCell);
+            row.appendChild(marketCapCell);
+            row.appendChild(priceChange24hCell);
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        cryptoContainer.appendChild(table);
+    }
+
+    fetchCryptoData();
+    // Refresh data every 60 seconds (as per CoinGecko's public API update frequency)
+    setInterval(fetchCryptoData, 60000);
+});
+    </script>
 </body>
 </html>
