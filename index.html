@@ -235,19 +235,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchIpInfo() {
         try {
-            const response = await fetch('https://ip-api.com/json');
+            const response = await fetch('https://api.ipify.org?format=json');
             if (!response.ok) {
-                throw new Error(`IP API request failed with status ${response.status}`);
+                throw new Error(`IP API request failed with status ${response.status}: ${response.statusText}`);
             }
             const ipData = await response.json();
 
-            if (ipData.status === 'success') {
-                ipInfoContainer.innerHTML = `
-                    <p><strong>Your IP:</strong> ${ipData.query}</p>
-                    <p><strong>Location:</strong> ${ipData.city || 'N/A'}, ${ipData.country || 'N/A'}</p>
-                `;
+            // ipify directly returns an object like {ip: "xxx.xxx.xxx.xxx"}
+            if (ipData.ip) {
+                ipInfoContainer.innerHTML = `<p><strong>Your IP:</strong> ${ipData.ip}</p>`;
             } else {
-                ipInfoContainer.innerHTML = '<p>Could not retrieve IP information.</p>';
+                ipInfoContainer.innerHTML = '<p>Could not retrieve IP address.</p>';
             }
         } catch (error) {
             console.error("Error fetching IP info:", error);
