@@ -133,6 +133,68 @@ img {
         font-size: 1.4em;
     }
 }
+
+/* Card-like layout for mobile */
+@media (max-width: 768px) {
+    table thead {
+        display: none; /* Hide table headers */
+    }
+    table, table tbody, table tr, table td {
+        display: block;
+        width: 100%;
+    }
+    table tr {
+        margin-bottom: 15px; /* Space between cards */
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    table td {
+        text-align: right; /* Align text to the right */
+        padding-left: 50%; /* Create space for the label */
+        position: relative;
+        white-space: normal; /* Allow text wrapping in cards */
+        border: none; /* Remove cell borders within a card */
+        border-bottom: 1px solid #eee; /* Separator for items in a card */
+    }
+    table td:last-child {
+        border-bottom: none; /* No border for the last item in a card */
+    }
+    table td::before {
+        content: attr(data-label); /* Use data-label for content */
+        position: absolute;
+        left: 10px; /* Padding for the label */
+        width: calc(50% - 20px); /* Label width, considering padding */
+        padding-right: 10px;
+        font-weight: 600;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    /* Adjustments for specific cells in card view if needed */
+    table td:nth-of-type(1)::before { content: "Rank:"; }
+    table td:nth-of-type(2)::before { content: "Name:"; }
+    table td:nth-of-type(3)::before { content: "Symbol:"; }
+    table td:nth-of-type(4)::before { content: "Price (USD):"; }
+    table td:nth-of-type(5)::before { content: "Market Cap (USD):"; }
+    table td:nth-of-type(6)::before { content: "24h Change (%):"; }
+
+    /* Ensure image in name cell is handled well */
+    table td:nth-of-type(2) {
+        display: flex; /* Use flex to align image and text */
+        align-items: center;
+        justify-content: flex-end; /* Align content to the right */
+    }
+     table td:nth-of-type(2) img {
+        position: static; /* Override absolute if it was set elsewhere */
+        margin-right: 0; /* Remove margin if label is handling spacing */
+        margin-left: 5px; /* Add some space if needed next to text */
+        order: 1; /* Ensure image comes after text if desired, or use justify-content */
+    }
+    table td:nth-of-type(2) a {
+       text-align: right; /* Ensure link text aligns right */
+    }
+}
     </style>
 </head>
 <body>
@@ -188,8 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const rankCell = document.createElement('td');
             rankCell.textContent = coin.market_cap_rank || (index + 1); // Use market_cap_rank if available
+            rankCell.setAttribute('data-label', 'Rank');
 
             const nameCell = document.createElement('td');
+            nameCell.setAttribute('data-label', 'Name');
             const nameLink = document.createElement('a');
             nameLink.href = `https://www.coingecko.com/en/coins/${coin.id}`;
             nameLink.textContent = coin.name;
@@ -208,14 +272,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const symbolCell = document.createElement('td');
             symbolCell.textContent = coin.symbol.toUpperCase();
+            symbolCell.setAttribute('data-label', 'Symbol');
 
             const priceCell = document.createElement('td');
             priceCell.textContent = coin.current_price ? `$${coin.current_price.toLocaleString()}` : 'N/A';
+            priceCell.setAttribute('data-label', 'Price (USD)');
 
             const marketCapCell = document.createElement('td');
             marketCapCell.textContent = coin.market_cap ? `$${coin.market_cap.toLocaleString()}` : 'N/A';
+            marketCapCell.setAttribute('data-label', 'Market Cap (USD)');
 
             const priceChange24hCell = document.createElement('td');
+            priceChange24hCell.setAttribute('data-label', '24h Change (%)');
             const change = coin.price_change_percentage_24h;
             if (change != null) {
                 priceChange24hCell.textContent = `${change.toFixed(2)}%`;
