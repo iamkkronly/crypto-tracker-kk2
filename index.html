@@ -135,8 +135,7 @@ img {
     <script>
 document.addEventListener('DOMContentLoaded', () => {
     const cryptoContainer = document.getElementById('crypto-container');
-    // API URL for 200 coins, 20-second refresh are kept from current state
-    const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false';
+    const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=500&page=1&sparkline=false';
 
     async function fetchCryptoData() {
         try {
