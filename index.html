@@ -105,9 +105,29 @@ img {
     }
     /* Any other specific 480px styles from that version */
 }
+
+#ip-tracker-info {
+    width: 80%;
+    max-width: 1000px;
+    margin: 0 auto 20px auto; /* Center it and add margin below */
+    padding: 10px 15px;
+    background-color: #e9ecef; /* Light grey background */
+    border: 1px solid #ced4da; /* Subtle border */
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+#ip-tracker-info p {
+    margin: 5px 0;
+}
     </style>
 </head>
 <body>
+    <div id="ip-tracker-info">
+        <!-- IP information will be loaded here -->
+    </div>
     <h1>Crypto Tracker</h1>
     <div id="crypto-container">
         <!-- Crypto data will be loaded here by JavaScript -->
@@ -209,6 +229,35 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCryptoData();
     // Refresh data every 20 seconds
     setInterval(fetchCryptoData, 20000);
+
+    // --- IP Tracker Functionality ---
+    const ipInfoContainer = document.getElementById('ip-tracker-info');
+
+    async function fetchIpInfo() {
+        try {
+            // Using http:// as https might be a paid feature for ip-api.com for client-side calls
+            // and this API is often used over HTTP for simple free lookups.
+            const response = await fetch('http://ip-api.com/json');
+            if (!response.ok) {
+                throw new Error(`IP API request failed with status ${response.status}`);
+            }
+            const ipData = await response.json();
+
+            if (ipData.status === 'success') {
+                ipInfoContainer.innerHTML = `
+                    <p><strong>Your IP:</strong> ${ipData.query}</p>
+                    <p><strong>Location:</strong> ${ipData.city || 'N/A'}, ${ipData.country || 'N/A'}</p>
+                `;
+            } else {
+                ipInfoContainer.innerHTML = '<p>Could not retrieve IP information.</p>';
+            }
+        } catch (error) {
+            console.error("Error fetching IP info:", error);
+            ipInfoContainer.innerHTML = '<p>Error loading IP information. Please try again later.</p>';
+        }
+    }
+
+    fetchIpInfo(); // Call to fetch IP info on page load
 });
     </script>
 </body>
