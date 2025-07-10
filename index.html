@@ -135,16 +135,35 @@ img {
     <script>
 document.addEventListener('DOMContentLoaded', () => {
     const cryptoContainer = document.getElementById('crypto-container');
-    const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=500&page=1&sparkline=false';
+    const COINS_TO_FETCH = 500;
+    const COINS_PER_PAGE = 100; // Assuming this is the actual limit based on user feedback
 
     async function fetchCryptoData() {
+        let allCoins = [];
+        const totalPages = Math.ceil(COINS_TO_FETCH / COINS_PER_PAGE);
+        const fetchPromises = [];
+
+        cryptoContainer.innerHTML = '<p>Loading crypto data...</p>'; // Initial loading message
+
+        for (let page = 1; page <= totalPages; page++) {
+            const apiUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${COINS_PER_PAGE}&page=${page}&sparkline=false`;
+            fetchPromises.push(
+                fetch(apiUrl).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`API request failed for page ${page} with status ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+            );
+        }
+
         try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
-            }
-            const coins = await response.json();
-            displayCryptoData(coins);
+            const pageResults = await Promise.all(fetchPromises);
+            pageResults.forEach(coins => {
+                allCoins = allCoins.concat(coins);
+            });
+            // Ensure we only display up to COINS_TO_FETCH, in case the last page brings more than needed to reach the exact number
+            displayCryptoData(allCoins.slice(0, COINS_TO_FETCH));
         } catch (error) {
             console.error("Error fetching crypto data:", error);
             cryptoContainer.innerHTML = '<p>Error loading data. Please try again later.</p>';
