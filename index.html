@@ -227,17 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fetchCryptoData();
-    // Refresh data every 20 seconds
-    setInterval(fetchCryptoData, 20000);
+    // Refresh data every 60 seconds (temporarily increased for diagnosis)
+    setInterval(fetchCryptoData, 60000);
 
     // --- IP Tracker Functionality ---
     const ipInfoContainer = document.getElementById('ip-tracker-info');
 
     async function fetchIpInfo() {
         try {
-            // Using http:// as https might be a paid feature for ip-api.com for client-side calls
-            // and this API is often used over HTTP for simple free lookups.
-            const response = await fetch('http://ip-api.com/json');
+            const response = await fetch('https://ip-api.com/json');
             if (!response.ok) {
                 throw new Error(`IP API request failed with status ${response.status}`);
             }
